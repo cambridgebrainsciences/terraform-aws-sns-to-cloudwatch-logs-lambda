@@ -45,7 +45,7 @@ variable "log_group_retention_days" {
 
 # LAMBDA FUNCTION
 
-variable "lambda_func_name" {
+variable "lambda_function_name" {
   type        = string
   default     = "SNStoCloudWatchLogs"
   description = "Name to assign to Lambda Function."
@@ -72,7 +72,7 @@ variable "lambda_timeout" {
   description = "Number of seconds that the function can run before timing out. The AWS default is 3s and the maximum runtime is 5m"
 }
 
-variable "lambda_mem_size" {
+variable "lambda_memory_size" {
   default     = 128
   description = "Amount of RAM (in MB) assigned to the function. The default (and minimum) is 128MB, and the maximum is 3008MB."
 }
@@ -86,4 +86,21 @@ variable "lambda_runtime" {
 variable "lambda_tags" {
   description = "A mapping of tags to assign to Lambda Function."
   default     = {}
+}
+
+variable "lambda_layer_arn" {
+  type        = string
+  description = "Existing layer for AWS Lambda Function"
+  default     = ""
+}
+
+variable "lambda_function_path" {
+  type        = string
+  description = "Custom AWS Lambda Function path"
+  default     = ""
+}
+variable "use_existing_layer" {
+  type        = bool
+  description = "Re-use existing AWS Lambda Layer"
+  default     = false
 }
