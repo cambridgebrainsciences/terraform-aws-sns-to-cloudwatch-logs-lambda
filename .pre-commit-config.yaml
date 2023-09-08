@@ -36,6 +36,6 @@ repos:
         args: ["markdown", "table", "--output-file", "README.md", "."]
 
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.77.1
+    rev: v1.82.0
     hooks:
       - id: terraform_fmt

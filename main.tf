@@ -1,19 +1,12 @@
-# -----------------------------------------------------------------
-# AWS SNS TO CLOUDWATCH LOGS LAMBDA GATEWAY
-# -----------------------------------------------------------------
+locals {
+  dynamic_description  = "Routes SNS topic '${var.sns_topic_name}' to CloudWatch group '${var.log_group_name}' and stream '${var.log_stream_name}'"
+  layer_arn            = var.lambda_layer_arn != "" && var.use_existing_layer ? var.lambda_layer_arn : aws_lambda_layer_version.logging_base.0.arn
+  lambda_function_path = var.lambda_function_path != "" ? var.lambda_function_path : "${path.module}/function/sns_cloudwatch_gw.py"
 
-terraform {
-  required_version = ">= 1.0"
-  required_providers {
-    aws = ">= 2.31"
-  }
 }
 
-# -----------------------------------------------------------------
-# CREATE LAMBDA BASE LAYER CONTAINING PYTHON LIBRARIES
-# -----------------------------------------------------------------
-
 resource "aws_lambda_layer_version" "logging_base" {
+  count            = var.use_existing_layer ? 0 : 1
   filename         = "${path.module}/base_${var.lambda_runtime}.zip"
   source_code_hash = filebase64sha256("${path.module}/base_${var.lambda_runtime}.zip")
 
@@ -23,26 +16,17 @@ resource "aws_lambda_layer_version" "logging_base" {
   compatible_runtimes = [var.lambda_runtime]
 }
 
-# -----------------------------------------------------------------
-# CREATE LAMBDA FUNCTION USING ZIP FILE
-# -----------------------------------------------------------------
-
-# make zip
 data "archive_file" "lambda_function" {
   type        = "zip"
-  source_file = "${path.module}/function/sns_cloudwatch_gw.py"
+  source_file = local.lambda_function_path
   output_path = "${path.module}/lambda.zip"
 }
 
-locals {
-  dynamic_description = "Routes SNS topic '${var.sns_topic_name}' to CloudWatch group '${var.log_group_name}' and stream '${var.log_stream_name}'"
-}
-
 # create lambda using function only zip on top of base layer
-resource "aws_lambda_function" "sns_cloudwatchlog" {
-  layers = [aws_lambda_layer_version.logging_base.arn]
+resource "aws_lambda_function" "sns_cloudwatch_log" {
+  layers = [local.layer_arn]
 
-  function_name = "${var.lambda_func_name}-${var.sns_topic_name}"
+  function_name = "${var.lambda_function_name}-${var.sns_topic_name}"
   description   = length(var.lambda_description) > 0 ? var.lambda_description : local.dynamic_description
 
   filename         = "${path.module}/lambda.zip"
@@ -54,7 +38,7 @@ resource "aws_lambda_function" "sns_cloudwatchlog" {
   runtime     = var.lambda_runtime
   handler     = "sns_cloudwatch_gw.main"
   timeout     = var.lambda_timeout
-  memory_size = var.lambda_mem_size
+  memory_size = var.lambda_memory_size
 
   environment {
     variables = {
@@ -120,7 +104,7 @@ resource "aws_cloudwatch_log_stream" "sns_logged_item_stream" {
 resource "aws_sns_topic_subscription" "lambda" {
   topic_arn = var.create_sns_topic ? aws_sns_topic.sns_log_topic[0].arn : data.aws_sns_topic.sns_log_topic[0].arn
   protocol  = "lambda"
-  endpoint  = var.lambda_publish_func ? aws_lambda_function.sns_cloudwatchlog.qualified_arn : aws_lambda_function.sns_cloudwatchlog.arn
+  endpoint  = var.lambda_publish_func ? aws_lambda_function.sns_cloudwatch_log.qualified_arn : aws_lambda_function.sns_cloudwatch_log.arn
 }
 
 # -----------------------------------------------------------------
@@ -131,10 +115,10 @@ resource "aws_sns_topic_subscription" "lambda" {
 resource "aws_lambda_permission" "sns_cloudwatchlog_multi" {
   statement_id  = "AllowExecutionFromSNS"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.sns_cloudwatchlog.function_name
+  function_name = aws_lambda_function.sns_cloudwatch_log.function_name
   principal     = "sns.amazonaws.com"
   source_arn    = var.create_sns_topic ? aws_sns_topic.sns_log_topic[0].arn : data.aws_sns_topic.sns_log_topic[0].arn
-  qualifier     = var.lambda_publish_func ? aws_lambda_function.sns_cloudwatchlog.version : null
+  qualifier     = var.lambda_publish_func ? aws_lambda_function.sns_cloudwatch_log.version : null
 }
 
 # -------------------------------------------------------------------------------------
@@ -143,13 +127,13 @@ resource "aws_lambda_permission" "sns_cloudwatchlog_multi" {
 
 # Create IAM role
 resource "aws_iam_role" "lambda_cloudwatch_logs" {
-  name               = "lambda-${lower(var.lambda_func_name)}-${var.sns_topic_name}"
+  name               = "lambda-${lower(var.lambda_function_name)}-${var.sns_topic_name}"
   assume_role_policy = data.aws_iam_policy_document.lambda_cloudwatch_logs.json
 }
 
 # Add base Lambda Execution policy
 resource "aws_iam_role_policy" "lambda_cloudwatch_logs_polcy" {
-  name   = "lambda-${lower(var.lambda_func_name)}-policy-${var.sns_topic_name}"
+  name   = "lambda-${lower(var.lambda_function_name)}-policy-${var.sns_topic_name}"
   role   = aws_iam_role.lambda_cloudwatch_logs.id
   policy = data.aws_iam_policy_document.lambda_cloudwatch_logs_policy.json
 }
@@ -188,7 +172,7 @@ resource "aws_cloudwatch_event_rule" "warmer" {
   count = var.create_warmer_event ? 1 : 0
 
   name                = "sns-logger-warmer-${var.sns_topic_name}"
-  description         = "Keeps ${var.lambda_func_name} Warm"
+  description         = "Keeps ${var.lambda_function_name} Warm"
   schedule_expression = "rate(15 minutes)"
 }
 
@@ -199,7 +183,7 @@ resource "aws_cloudwatch_event_target" "warmer" {
   # rule      = join("", aws_cloudwatch_event_rule.warmer.*.name)
   rule      = aws_cloudwatch_event_rule.warmer[0].name
   target_id = "Lambda"
-  arn       = var.lambda_publish_func ? aws_lambda_function.sns_cloudwatchlog.qualified_arn : aws_lambda_function.sns_cloudwatchlog.arn
+  arn       = var.lambda_publish_func ? aws_lambda_function.sns_cloudwatch_log.qualified_arn : aws_lambda_function.sns_cloudwatch_log.arn
 
   input = <<JSON
 {
@@ -219,8 +203,8 @@ resource "aws_lambda_permission" "warmer_multi" {
 
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.sns_cloudwatchlog.function_name
+  function_name = aws_lambda_function.sns_cloudwatch_log.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.warmer[0].arn
-  qualifier     = var.lambda_publish_func ? aws_lambda_function.sns_cloudwatchlog.version : null
+  qualifier     = var.lambda_publish_func ? aws_lambda_function.sns_cloudwatch_log.version : null
 }

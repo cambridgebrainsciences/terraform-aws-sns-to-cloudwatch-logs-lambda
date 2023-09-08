@@ -108,7 +108,7 @@ No modules.
 | [aws_cloudwatch_log_stream.sns_logged_item_stream](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_stream) | resource |
 | [aws_iam_role.lambda_cloudwatch_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy.lambda_cloudwatch_logs_polcy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
-| [aws_lambda_function.sns_cloudwatchlog](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function) | resource |
+| [aws_lambda_function.sns_cloudwatch_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function) | resource |
 | [aws_lambda_layer_version.logging_base](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_layer_version) | resource |
 | [aws_lambda_permission.sns_cloudwatchlog_multi](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_permission) | resource |
 | [aws_lambda_permission.warmer_multi](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_permission) | resource |
@@ -129,8 +129,10 @@ No modules.
 | <a name="input_create_sns_topic"></a> [create\_sns\_topic](#input\_create\_sns\_topic) | Boolean flag that determines if SNS topic, 'sns\_topic\_name' is created. If 'false' it uses an existing topic of that name. | `bool` | `true` | no |
 | <a name="input_create_warmer_event"></a> [create\_warmer\_event](#input\_create\_warmer\_event) | Boolean flag that determines if a CloudWatch Trigger event is created to prevent Lambda function from suspending. | `bool` | `false` | no |
 | <a name="input_lambda_description"></a> [lambda\_description](#input\_lambda\_description) | Description to assign to Lambda Function. | `string` | `""` | no |
-| <a name="input_lambda_func_name"></a> [lambda\_func\_name](#input\_lambda\_func\_name) | Name to assign to Lambda Function. | `string` | `"SNStoCloudWatchLogs"` | no |
-| <a name="input_lambda_mem_size"></a> [lambda\_mem\_size](#input\_lambda\_mem\_size) | Amount of RAM (in MB) assigned to the function. The default (and minimum) is 128MB, and the maximum is 3008MB. | `number` | `128` | no |
+| <a name="input_lambda_function_name"></a> [lambda\_function\_name](#input\_lambda\_function\_name) | Name to assign to Lambda Function. | `string` | `"SNStoCloudWatchLogs"` | no |
+| <a name="input_lambda_function_path"></a> [lambda\_function\_path](#input\_lambda\_function\_path) | Custom AWS Lambda Function path | `string` | `""` | no |
+| <a name="input_lambda_layer_arn"></a> [lambda\_layer\_arn](#input\_lambda\_layer\_arn) | Existing layer for AWS Lambda Function | `string` | `""` | no |
+| <a name="input_lambda_memory_size"></a> [lambda\_memory\_size](#input\_lambda\_memory\_size) | Amount of RAM (in MB) assigned to the function. The default (and minimum) is 128MB, and the maximum is 3008MB. | `number` | `128` | no |
 | <a name="input_lambda_publish_func"></a> [lambda\_publish\_func](#input\_lambda\_publish\_func) | Boolean flag that determines if Lambda function is published as a version. | `bool` | `false` | no |
 | <a name="input_lambda_runtime"></a> [lambda\_runtime](#input\_lambda\_runtime) | Lambda runtime to use for the function. | `string` | `"python3.8"` | no |
 | <a name="input_lambda_tags"></a> [lambda\_tags](#input\_lambda\_tags) | A mapping of tags to assign to Lambda Function. | `map` | `{}` | no |
@@ -139,6 +141,7 @@ No modules.
 | <a name="input_log_group_retention_days"></a> [log\_group\_retention\_days](#input\_log\_group\_retention\_days) | Number of days to retain data in the log group (0 = always retain). | `number` | `0` | no |
 | <a name="input_log_stream_name"></a> [log\_stream\_name](#input\_log\_stream\_name) | Name of CloudWatch Log Stream created or used (if previously created).  If using an existing stream it must exist in the Log group specified in 'log\_group\_name'. | `string` | n/a | yes |
 | <a name="input_sns_topic_name"></a> [sns\_topic\_name](#input\_sns\_topic\_name) | Name of SNS Topic logging to CloudWatch Log. | `string` | n/a | yes |
+| <a name="input_use_existing_layer"></a> [use\_existing\_layer](#input\_use\_existing\_layer) | Re-use existing AWS Lambda Layer | `bool` | `false` | no |
 
 ## Outputs
 
