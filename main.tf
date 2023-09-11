@@ -26,7 +26,7 @@ data "archive_file" "lambda_function" {
 resource "aws_lambda_function" "sns_cloudwatch_log" {
   layers = [local.layer_arn]
 
-  function_name = "${var.lambda_function_name}-${var.sns_topic_name}"
+  function_name = "${var.lambda_func_name}-${var.sns_topic_name}"
   description   = length(var.lambda_description) > 0 ? var.lambda_description : local.dynamic_description
 
   filename         = "${path.module}/lambda.zip"
@@ -127,13 +127,13 @@ resource "aws_lambda_permission" "sns_cloudwatchlog_multi" {
 
 # Create IAM role
 resource "aws_iam_role" "lambda_cloudwatch_logs" {
-  name               = "lambda-${lower(var.lambda_function_name)}-${var.sns_topic_name}"
+  name               = "lambda-${lower(var.lambda_func_name)}-${var.sns_topic_name}"
   assume_role_policy = data.aws_iam_policy_document.lambda_cloudwatch_logs.json
 }
 
 # Add base Lambda Execution policy
 resource "aws_iam_role_policy" "lambda_cloudwatch_logs_polcy" {
-  name   = "lambda-${lower(var.lambda_function_name)}-policy-${var.sns_topic_name}"
+  name   = "lambda-${lower(var.lambda_func_name)}-policy-${var.sns_topic_name}"
   role   = aws_iam_role.lambda_cloudwatch_logs.id
   policy = data.aws_iam_policy_document.lambda_cloudwatch_logs_policy.json
 }
@@ -172,7 +172,7 @@ resource "aws_cloudwatch_event_rule" "warmer" {
   count = var.create_warmer_event ? 1 : 0
 
   name                = "sns-logger-warmer-${var.sns_topic_name}"
-  description         = "Keeps ${var.lambda_function_name} Warm"
+  description         = "Keeps ${var.lambda_func_name} Warm"
   schedule_expression = "rate(15 minutes)"
 }
 

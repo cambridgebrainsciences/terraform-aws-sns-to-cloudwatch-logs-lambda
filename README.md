@@ -84,7 +84,7 @@ module "sns_logger" {
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 2.31 |
 
 ## Providers
@@ -129,7 +129,7 @@ No modules.
 | <a name="input_create_sns_topic"></a> [create\_sns\_topic](#input\_create\_sns\_topic) | Boolean flag that determines if SNS topic, 'sns\_topic\_name' is created. If 'false' it uses an existing topic of that name. | `bool` | `true` | no |
 | <a name="input_create_warmer_event"></a> [create\_warmer\_event](#input\_create\_warmer\_event) | Boolean flag that determines if a CloudWatch Trigger event is created to prevent Lambda function from suspending. | `bool` | `false` | no |
 | <a name="input_lambda_description"></a> [lambda\_description](#input\_lambda\_description) | Description to assign to Lambda Function. | `string` | `""` | no |
-| <a name="input_lambda_function_name"></a> [lambda\_function\_name](#input\_lambda\_function\_name) | Name to assign to Lambda Function. | `string` | `"SNStoCloudWatchLogs"` | no |
+| <a name="input_lambda_func_name"></a> [lambda\_func\_name](#input\_lambda\_func\_name) | Name to assign to Lambda Function. | `string` | `"SNStoCloudWatchLogs"` | no |
 | <a name="input_lambda_function_path"></a> [lambda\_function\_path](#input\_lambda\_function\_path) | Custom AWS Lambda Function path | `string` | `""` | no |
 | <a name="input_lambda_layer_arn"></a> [lambda\_layer\_arn](#input\_lambda\_layer\_arn) | Existing layer for AWS Lambda Function | `string` | `""` | no |
 | <a name="input_lambda_memory_size"></a> [lambda\_memory\_size](#input\_lambda\_memory\_size) | Amount of RAM (in MB) assigned to the function. The default (and minimum) is 128MB, and the maximum is 3008MB. | `number` | `128` | no |
