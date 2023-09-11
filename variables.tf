@@ -45,7 +45,7 @@ variable "log_group_retention_days" {
 
 # LAMBDA FUNCTION
 
-variable "lambda_function_name" {
+variable "lambda_func_name" {
   type        = string
   default     = "SNStoCloudWatchLogs"
   description = "Name to assign to Lambda Function."
